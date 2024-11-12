@@ -17,7 +17,7 @@ st.write("### Dataset Information")
 st.write(df.info())
 
 # Grouping data for analysis
-grouped = df.groupby(['title', 'type', 'releaseYear', 'imdbId', 'imdbNumVotes', 'availableCountries']).agg({'genres': 'sum'}).reset_index()
+grouped = df.groupby(['title', 'type', 'releaseYear', 'imdbId', 'imdbAverageRating', 'imdbNumVotes', 'availableCountries']).agg({'genres': 'sum'}).reset_index()
 
 # User selections for x and y axes
 st.markdown(
@@ -41,7 +41,7 @@ st.plotly_chart(fig)
 # Optional: Display selected row information based on user input
 if st.checkbox("Show Row Information"):
     # Create a sidebar or main section for selections
-    option = st.selectbox("Choose an option to view:", ["Select by Title", "Select by Genres"])
+    option = st.selectbox("Choose an option to view:", ["Select by Title", "Select by Genres", "Select by imdbNumVotes"])
     
     if option == "Select by Title":
         selected_title = st.selectbox("Select a Title:", grouped['title'].unique())
@@ -58,6 +58,17 @@ if st.checkbox("Show Row Information"):
             st.write(row_info)
         else:
             st.write("Please select at least one genre to see the row information.")
+
+    elif option == "Select by imdbNumVotes":
+        # Use a slider to select a range of imdbNumVotes
+        min_votes, max_votes = int(grouped['imdbNumVotes'].min()), int(grouped['imdbNumVotes'].max())
+        selected_range = st.slider("Select range of IMDb Num Votes:", min_value=min_votes, max_value=max_votes, value=(min_votes, max_votes))
+        
+        # Filter rows based on the selected range
+        row_info = grouped[(grouped['imdbNumVotes'] >= selected_range[0]) & (grouped['imdbNumVotes'] <= selected_range[1])]
+        
+        st.write("### Selected Row Information")
+        st.write(row_info)
 
 def main():
     page = st.sidebar.selectbox("Navigation", ["Page 1", "Page 2", "Page 3"])

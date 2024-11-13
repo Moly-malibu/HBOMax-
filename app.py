@@ -6,7 +6,14 @@ st.markdown("<h1 style='text-align: center; color: #002967;'>HBO MAX TV & MOVIES
 st.markdown("<h1 style='text-align: center; color: #002967;'>Customer Preference</h1>", unsafe_allow_html=True)
 
 def main():
-    options = ["Visualization", 'Statistic', 'Prediction']
+    import pandas as pd
+    import plotly.express as px
+    options = [ 'Statistic', "Visualization", 'Prediction']
+    st.markdown(""" 
+                
+    This dataset provides a comprehensive collection of all titles (Movies and TV Series) available on HBO Max. In addition to basic information, it includes IMDb-specific data like IMDb ID, Average Rating, and Number of Votes. Statistic, Visualization and Prediction, analysis:
+                
+    """)
             # Create a selectbox in the sidebar
     selected_option = st.sidebar.selectbox("Choose an option:", options)
     if selected_option == "Visualization":

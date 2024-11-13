@@ -3,6 +3,6 @@ pandas
 numpy
 matplotlib
 wordcloud
-collections
+Counter
 scikit-learn
 seaborn

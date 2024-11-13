@@ -6,7 +6,7 @@ st.markdown("<h1 style='text-align: center; color: #002967;'>HBO MAX TV & MOVIES
 st.markdown("<h1 style='text-align: center; color: #002967;'>Customer Preference</h1>", unsafe_allow_html=True)
 
 def main():
-    options = ["Visualization", 'Statistic']
+    options = ["Visualization", 'Statistic', 'Prediction']
             # Create a selectbox in the sidebar
     selected_option = st.sidebar.selectbox("Choose an option:", options)
     if selected_option == "Visualization":
@@ -190,6 +190,162 @@ def main():
                 st.pyplot(plt)
             else:
                 st.error("The required column 'imdbNumVotes' is not present in the dataset.")
+    if selected_option == "Prediction":
+            import pandas as pd
+            import numpy as np
+            from sklearn.model_selection import train_test_split
+            from sklearn.preprocessing import OneHotEncoder
+            from sklearn.ensemble import RandomForestClassifier
+            from sklearn.metrics import classification_report
+            import seaborn as sns
+            import matplotlib.pyplot as plt
+            from wordcloud import WordCloud, STOPWORDS
+            from collections import Counter
+            page_bg_img = '''
+            <style>
+            .stApp {
+            background-image: url("https://media.istockphoto.com/id/2156142316/es/vector/fondo-geom%C3%A9trico-minimalista-blanco-gris%C3%A1ceo-con-c%C3%ADrculos-brillantes-y-rayas.jpg?s=612x612&w=0&k=20&c=Vg30eAC7bOaS7jkfbylTaFqWJqQySJYJp7WUzVb9t0o=");
+            background-size: cover;
+            }
+            </style>
+            '''
+            st.markdown(page_bg_img, unsafe_allow_html=True)
+            st.subheader("Prediction", divider=True)
+            df=pd.read_csv('data.csv')
+            df.dropna(inplace=True)
+            # st.write(df.columns)
+            
+            # Data cleaning and preparation
+            df.dropna(subset=['imdbAverageRating', 'imdbNumVotes', 'releaseYear'], inplace=True)
+            
+            if 'genres' not in df.columns or df['genres'].isnull().any():
+                    raise ValueError("Target variable 'gender' is missing or contains NaN values.")
+
+            X = df[['releaseYear', 'imdbNumVotes']]  # Features
+            y = df['genres']  # Target variable
+
+            # Ensure both X and y have consistent sample sizes
+            if len(X) != len(y):
+                X = X.loc[y.index]  
+
+            # Define features and target variable
+            X = df[['releaseYear', 'imdbAverageRating', 'imdbNumVotes']]  # Features
+            y = df['genres']  # Target variable
+
+            # Ensure both X and y have consistent sample sizes
+            if len(X) != len(y):
+                st.write(f"Feature count: {len(X)}, Target count: {len(y)}")
+                # Align X with y by filtering out any rows not present in y if necessary
+                X = X.loc[y.index]
+
+            # Encode categorical variables if necessary (assuming you have categorical data)
+            encoder = OneHotEncoder(sparse_output=False)
+            encoded_features = encoder.fit_transform(df[['type', 'genres', 'availableCountries']])
+            encoded_df = pd.DataFrame(encoded_features, columns=encoder.get_feature_names_out(['type', 'genres', 'availableCountries']))
+
+            # Combine encoded features with numerical features
+            features = pd.concat([X.reset_index(drop=True), encoded_df.reset_index(drop=True)], axis=1)
+
+            # Split data into training and testing sets
+            X_train, X_test, y_train, y_test = train_test_split(features, y, test_size=0.2, random_state=42)
+
+            # Train a Random Forest Classifier
+            model = RandomForestClassifier(n_estimators=100, random_state=42)
+            model.fit(X_train, y_train)
+
+            # Make predictions and evaluate the model
+            y_pred = model.predict(X_test)
+            # st.write(classification_report(y_test, y_pred))
+            
+            # Generate classification report and convert it to a DataFrame for better presentation
+            report = classification_report(y_test, y_pred, output_dict=True)
+            report_df = pd.DataFrame(report).transpose()
+
+            # Display the classification report in Streamlit
+            st.title("Model Evaluation")
+            st.subheader("Classification Report")
+            st.dataframe(report_df.style.format("{:.2f}"))  # Format numbers to two decimal places
+            st.markdown(
+            """ 
+            Male Class:
+            
+            Precision of 0.85 means that when predicting "Male", 85% of those predictions were correct.
+            
+            Recall of 0.90 indicates that out of all actual males, 90% were correctly identified.
+           
+            F1 Score of 0.87 suggests a good balance between precision and recall for males.
+            
+            Female Class:
+            
+            Precision of 0.80 indicates that when predicting "Female", 80% were correct.
+            
+            Recall of 0.75 means that only 75% of actual females were identified by the model.
+            
+            F1 Score of 0.77 shows that there is room for improvement in capturing female instances.
+            
+            Overall Accuracy:
+           
+            Macro Average: The macro average gives equal weight to each class's metrics regardless of its support (number of instances). This helps understand performance across classes without being biased by class size.
+            
+            Weighted Average: The weighted average takes into account the support (number of true instances) for each class, providing an overall view that reflects class imbalance.
+                        """
+            )
+            # Display title
+            st.title("Pairplot Visualization")
+
+            # Set the aesthetic style of the plots
+            sns.set_style('whitegrid')
+
+            selected_columns = ['imdbAverageRating', 'imdbNumVotes', 'releaseYear']
+            pairplot_df = df[selected_columns]
+
+            # Generate the pairplot
+            plt.figure(figsize=(10, 6))
+            sns.pairplot(df)  # You can specify columns if needed
+
+            # Display the plot in Streamlit
+            st.pyplot(plt)
+            
+            # Display title
+            st.title("Interactive Pairplot")
+
+            # Check if the DataFrame has the necessary numerical columns
+            if 'imdbNumVotes' in df.columns:
+                # Create an interactive scatter matrix (pairplot)
+                fig = px.scatter_matrix(df,
+                                        dimensions=["imdbNumVotes"],  # Add more numerical columns if available
+                                        title="Scatter Matrix of IMDB Votes",
+                                        labels={col: col for col in df.columns})  # Labeling for axes
+
+                # Display the interactive plot in Streamlit
+                st.plotly_chart(fig)
+            else:
+                st.error("The dataset does not contain the required numerical columns.")
+            counts = Counter(df["genres"].dropna().apply(lambda x: str(x)))
+
+
+            st.subheader("Conclusion: Customer Preferences", divider=True)
+            # Create a set of stop words
+            stop_words_list = set(STOPWORDS)
+
+            # Generate the word cloud
+            wcc = WordCloud(
+                background_color="black",
+                width=1600,
+                height=800,
+                max_words=2000,
+                stopwords=stop_words_list
+            ).generate_from_frequencies(counts)
+
+            # Display the word cloud using matplotlib
+            plt.figure(figsize=(10, 5), facecolor='k')
+            plt.imshow(wcc, interpolation='bilinear')
+            plt.axis("off")
+            plt.tight_layout(pad=0)
+
+            # Show the plot in Streamlit
+            st.pyplot(plt)
+
 
 
 if __name__ == "__main__":

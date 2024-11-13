@@ -6,3 +6,4 @@ wordcloud
 Counter
 scikit-learn
 seaborn
+plotly

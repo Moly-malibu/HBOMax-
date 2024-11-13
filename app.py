@@ -3,14 +3,11 @@ import pandas as pd
 import plotly.express as px
 
 
-def HBO():
-    st.title("Page 1")
-    st.write("This is the first page.")
-    
 df=pd.read_csv('data.csv')
 df = df.drop_duplicates()
 
 # Display initial data
+st.subheader("Full HBO Max Analysis", divider=True)
 st.write("### Preview of the Dataset")
 st.write(df.head())
 st.write("### Dataset Information")
@@ -71,7 +68,7 @@ if st.checkbox("Show Row Information"):
         st.write(row_info)
 
 def main():
-    page = st.sidebar.selectbox("Navigation", ["Page 1", "Page 2", "Page 3"])
+    page = st.sidebar.selectbox("Navigation", ["Visualization", "Statistics", "Predictions"])
 
     if page == "HBO":
         HBO()

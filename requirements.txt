@@ -6,4 +6,4 @@ matplotlib
 wordcloud
 collections
 seaborn
-sklearn
+scikit-learn

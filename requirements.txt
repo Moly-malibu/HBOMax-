@@ -5,5 +5,4 @@ seaborn
 matplotlib
 wordcloud
 collections
-seaborn
 scikit-learn
